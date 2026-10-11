@@ -32,7 +32,28 @@ const totalCount = document.querySelector("#totalCount");
 const activeCount = document.querySelector("#activeCount");
 const completedCount = document.querySelector("#completedCount");
 
-let tasks = [];
+const STORAGE_KEY = "studyflow.tasks.v1";
+
+const sampleTasks = [
+  {
+    id: "sample-dom",
+    title: "DOM eseménykezelés gyakorlása",
+    category: "JavaScript",
+    priority: "high",
+    dueDate: "",
+    completed: false
+  },
+  {
+    id: "sample-git",
+    title: "Feature branch és Pull Request elkészítése",
+    category: "Git",
+    priority: "medium",
+    dueDate: "",
+    completed: true
+  }
+];
+
+let tasks = loadTasks();
 let currentFilter = "all";
 let searchTerm = "";
 
@@ -44,6 +65,36 @@ const priorityLabels = {
 
 function createId() {
   return `${Date.now()}-${Math.random().toString(16).slice(2)}`;
+}
+
+function loadTasks() {
+  try {
+    const storedValue = localStorage.getItem(STORAGE_KEY);
+
+    if (storedValue === null) {
+      return sampleTasks.map((task) => ({ ...task }));
+    }
+
+    const parsedValue = JSON.parse(storedValue);
+    return Array.isArray(parsedValue) ? parsedValue : [];
+  } catch (error) {
+    console.warn("A mentett feladatok nem olvashatók:", error);
+    return sampleTasks.map((task) => ({ ...task }));
+  }
+}
+
+function saveTasks() {
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(tasks));
+  } catch (error) {
+    console.warn("A feladatok mentése sikertelen:", error);
+    showFormMessage("A böngésző nem tudta elmenteni a feladatokat.");
+  }
+}
+
+function persistAndRender() {
+  saveTasks();
+  renderTasks();
 }
 
 function readTaskFromForm() {
@@ -154,7 +205,7 @@ taskForm.addEventListener("submit", function (event) {
   }
 
   tasks.push(newTask);
-  renderTasks();
+  persistAndRender();
   taskForm.reset();
   showFormMessage("");
   showStatus("Új feladat hozzáadva.");
@@ -182,7 +233,7 @@ taskList.addEventListener("click", function (event) {
     showStatus("A feladat törölve.");
   }
 
-  renderTasks();
+  persistAndRender();
 });
 
 filterButtons.forEach((button) => {
@@ -214,13 +265,11 @@ clearCompletedButton.addEventListener("click", function () {
 
   tasks = tasks.filter((task) => !task.completed);
   showStatus(`${completedBeforeDelete} kész feladat törölve.`);
-  renderTasks();
+  persistAndRender();
 });
 
 renderTasks();
 
-
-// 3. Adatbeolvasó, ellenőrző, formázó és renderelő függvények.
 
 
 // 4. Eseménykezelők.
