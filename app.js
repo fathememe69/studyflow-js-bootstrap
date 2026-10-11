@@ -16,7 +16,6 @@
 // 1. DOM-elemek kiválasztása.
 "use strict";
 
-// ---- DOM-hivatkozások ------------------------------------------------------
 const taskForm = document.querySelector("#taskForm");
 const titleInput = document.querySelector("#taskTitle");
 const categoryInput = document.querySelector("#taskCategory");
@@ -79,8 +78,8 @@ function createId() {
 function readTaskFromForm() {
   return {
     id: createId(),
-    // Ismert hiba: a csak szóközökből álló cím még átjut az ellenőrzésen.
-    title: titleInput.value,
+    // A trim() a fix/ures-cim branch hibajavítása.
+    title: titleInput.value.trim(),
     category: categoryInput.value,
     priority: priorityInput.value,
     dueDate: dueDateInput.value,
@@ -89,7 +88,7 @@ function readTaskFromForm() {
 }
 
 function isTaskValid(task) {
-  return task.title !== "" && task.category !== "" && task.priority !== "";
+  return task.title.length >= 3 && task.category !== "" && task.priority !== "";
 }
 
 function loadTasks() {
@@ -278,7 +277,7 @@ taskForm.addEventListener("submit", function (event) {
   const newTask = readTaskFromForm();
 
   if (!isTaskValid(newTask)) {
-    showFormMessage("A feladat címének kitöltése kötelező.", true);
+    showFormMessage("A feladat címe legalább 3 látható karakter legyen.", true);
     titleInput.focus();
     return;
   }
@@ -367,5 +366,3 @@ deleteModalElement.addEventListener("hidden.bs.modal", function () {
 // Első megjelenítés a mentett vagy mintaadatokból.
 renderTasks();
 
-
-// 5. localStorage-kezelés és Bootstrap-komponensek.
